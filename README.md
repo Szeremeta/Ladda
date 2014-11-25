@@ -132,3 +132,5 @@ The project is tested in Chrome and Firefox. It Should Work™ in the current st
 MIT licensed
 
 Copyright (C) 2014 Hakim El Hattab, http://hakim.se
+
+- added IE8/9 support Alex Szeremeta
