@@ -4,8 +4,11 @@
  * MIT licensed
  *
  * Copyright (C) 2014 Hakim El Hattab, http://hakim.se
+ *
+ * This has been modified by Alex S
+ *
  */
-/* jshint node:true, browser:true */
+
 (function( root, factory ) {
 
 	// CommonJS
@@ -27,6 +30,7 @@
 
 	// All currently instantiated instances of Ladda
 	var ALL_INSTANCES = [];
+	var label_width = 0;
 
 	/**
 	 * Creates a new instance of Ladda which wraps the
@@ -36,7 +40,6 @@
 	 * the loading animation state.
 	 */
 	function create( button ) {
-
 		if( typeof button === 'undefined' ) {
 			console.warn( "Ladda button target must be defined." );
 			return;
@@ -45,15 +48,26 @@
 		// The text contents must be wrapped in a ladda-label
 		// element, create one if it doesn't already exist
 		if( !button.querySelector( '.ladda-label' ) ) {
-			button.innerHTML = '<span class="ladda-label">'+ button.innerHTML +'</span>';
+			button.innerHTML = '<span class="ladda-label">' + button.innerHTML + '</span>';
 		}
 
 		// The spinner component
-		var spinner;
+		var spinner,
+			spinnerLabel;
+
+		// Prefer an explicit height if one is defined
+		if( button.hasAttribute( 'data-msg' ) ) {
+			spinnerLabel = button.getAttribute( 'data-msg' );
+		}
 
 		// Wrapper element for the spinner
 		var spinnerWrapper = document.createElement( 'span' );
 		spinnerWrapper.className = 'ladda-spinner';
+		var spinnerLabelWrapper = document.createElement( 'span' );
+		spinnerLabelWrapper.innerHTML = spinnerLabel;
+		spinnerLabelWrapper.className = 'ladda-spinner-label';
+		spinnerWrapper.appendChild( spinnerLabelWrapper );
+
 		button.appendChild( spinnerWrapper );
 
 		// Timer used to delay starting/stopping
@@ -69,7 +83,12 @@
 				// Create the spinner if it doesn't already exist
 				if( !spinner ) spinner = createSpinner( button );
 
-				button.setAttribute( 'disabled', '' );
+				if(($('html').hasClass('is-ie8')) || ($('html').hasClass('is-ie9'))) {
+					button.style.display = 'none';
+					button.style.display = 'block';						
+				} else {
+					button.setAttribute( 'disabled', '' );
+				}
 				button.setAttribute( 'data-loading', '' );
 
 				clearTimeout( timer );
@@ -97,9 +116,13 @@
 			 * Exit the loading state.
 			 */
 			stop: function() {
-
-				button.removeAttribute( 'disabled' );
-				button.removeAttribute( 'data-loading' );
+				if(($('html').hasClass('is-ie8')) || ($('html').hasClass('is-ie9'))) {
+					button.style.display = 'none';
+					button.style.display = 'block';					
+				} else {
+					button.removeAttribute('disabled');
+				}
+				button.removeAttribute('data-loading');
 
 				// Kill the animation after a delay to make sure it
 				// runs for the duration of the button transition
@@ -154,6 +177,9 @@
 					}
 
 					progressElement.style.width = ( ( progress || 0 ) * button.offsetWidth ) + 'px';
+					var progressSpinner = button.querySelector( '.ladda-spinner' );
+					label_width = button.querySelector('.ladda-spinner-label').offsetWidth;
+					progressSpinner.style.left = ((button.offsetWidth / 2) - ((label_width + 10)  / 2)) + 'px';
 				}
 
 			},
@@ -376,14 +402,30 @@
 
 		return new Spinner( {
 			color: spinnerColor || '#fff',
-			lines: lines,
-			radius: radius,
-			length: length,
-			width: width,
+			//lines: lines,
+			//radius: radius,
+			//length: length,
+			//width: width,
 			zIndex: 'auto',
 			top: 'auto',
 			left: 'auto',
-			className: ''
+			className: '',
+			lines: 9, // The number of lines to draw
+			length: 3, // The length of each line
+			width: 2, // The line thickness
+			radius: 5, // The radius of the inner circle
+			corners: 1, // Corner roundness (0..1)
+			rotate: 0, // The rotation offset
+			direction: 1, // 1: clockwise, -1: counterclockwise
+			//color: '#000', // #rgb or #rrggbb or array of colors
+			speed: 1.1, // Rounds per second
+			trail: 76, // Afterglow percentage
+			shadow: false, // Whether to render a shadow
+			hwaccel: true//, // Whether to use hardware acceleration
+			//className: 'spinner', // The CSS class to assign to the spinner
+			//zIndex: 2e9, // The z-index (defaults to 2000000000)
+			//top: '50%', // Top position relative to parent
+			//left: '50%' // Left position relative to parent
 		} );
 
 	}
